@@ -1,0 +1,15 @@
+<div class="breadcrumb-container" #breadcrumbContainer>
+  <button
+    [disabled]="visibleBreadcrumbs.length <= 1"
+    (click)="breadcrumbClicked.emit(visibleBreadcrumbs[visibleBreadcrumbs.length - 2])">
+    <
+  </button>
+  @for (breadcrumb of visibleBreadcrumbs; track breadcrumb.key; let i = $index; let last = $last) {
+    <app-breadcrumb-element
+      [breadcrumb]="breadcrumb"
+      [last]="last"
+      (breadcrumbClicked)="breadcrumbClicked.emit(breadcrumbs[i])"
+    />
+  }
+</div>
+

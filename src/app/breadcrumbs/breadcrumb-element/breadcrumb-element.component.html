@@ -1,0 +1,6 @@
+<div class="content">
+  <div (click)="onClick()" class="label">{{ breadcrumb.label$ | async }}</div>
+  @if (!last) {
+    <span> > </span>
+  }
+</div>
