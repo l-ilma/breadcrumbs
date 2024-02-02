@@ -42,10 +42,6 @@ export class BreadcrumbsComponent implements OnChanges {
       });
   }
 
-  get visibleBreadcrumbs(): Breadcrumb[] {
-    return this.breadcrumbs;
-  }
-
   ngOnChanges(changes: SimpleChanges) {
     if (changes['maxWidth']) {
       if (!this.breadcrumbElements || this.breadcrumbElements?.length === 0) {

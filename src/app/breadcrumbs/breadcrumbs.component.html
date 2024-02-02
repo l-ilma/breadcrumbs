@@ -1,10 +1,10 @@
 <div class="breadcrumb-container" #breadcrumbContainer>
   <button
-    [disabled]="visibleBreadcrumbs.length <= 1"
-    (click)="breadcrumbClicked.emit(visibleBreadcrumbs[visibleBreadcrumbs.length - 2])">
+    [disabled]="breadcrumbs.length <= 1"
+    (click)="breadcrumbClicked.emit(breadcrumbs[breadcrumbs.length - 2])">
     <
   </button>
-  @for (breadcrumb of visibleBreadcrumbs; track breadcrumb.key) {
+  @for (breadcrumb of breadcrumbs; track breadcrumb.key) {
     <app-breadcrumb-element
       [breadcrumb]="breadcrumb"
       [first]="$first"

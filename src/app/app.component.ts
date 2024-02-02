@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Signal, signal } from '@angular/core';
 import { Breadcrumb } from './models';
 import { of } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
-import { BreadcrumbElementComponent } from './breadcrumbs/breadcrumb-element/breadcrumb-element.component';
 import { BreadcrumbsComponent } from './breadcrumbs/breadcrumbs.component';
 import { ResizeObserverDirective } from './resize-observer.directive';
 import { inject } from '@angular/core';
@@ -10,12 +8,7 @@ import { inject } from '@angular/core';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    AsyncPipe,
-    BreadcrumbElementComponent,
-    BreadcrumbsComponent,
-    ResizeObserverDirective
-  ],
+  imports: [BreadcrumbsComponent, ResizeObserverDirective],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
