@@ -5,7 +5,7 @@
     (appResizeObserver)="onLimitingContainerDimensionChange($event)">
 
     <app-breadcrumbs
-      [breadcrumbs]="(visibleBreadcrumbs$ | async) ?? []"
+      [breadcrumbs]="visibleBreadcrumbs()"
       [maxWidth]="maxWidth()"
       (breadcrumbClicked)="returnToCrumb($event)"
     />

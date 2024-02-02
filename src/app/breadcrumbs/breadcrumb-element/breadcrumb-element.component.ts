@@ -24,26 +24,44 @@ import { AsyncPipe } from '@angular/common';
 export class BreadcrumbElementComponent {
   @Input({ required: true }) breadcrumb!: Breadcrumb;
   @Input() last = false;
+  @Input() first = false;
 
   @Output() breadcrumbClicked = new EventEmitter<void>();
 
-  @HostBinding('style.display') display = 'block';
+  @HostBinding('style.display') protected display = 'block';
+  // Initially the visibility is hidden because at the moment of the rendering
+  // we are still not sure if the breadcrumb fits into the container.
+  // Display property could not be used as it sets the element's width to 0.
+  @HostBinding('style.visibility') protected visibility = 'hidden';
+
   #hidden = false;
-  #width: number = 0;
-  reference = inject(ElementRef);
+  #widthBeforeHiding: number = 0;
+  #reference = inject(ElementRef);
 
   get hidden(): boolean { return this.#hidden; }
-  get width(): number { return this.#width; }
+  // Width of the element before it was hidden (after that its width is 0)
+  get widthBeforeHiding(): number { return this.#widthBeforeHiding; }
+  get currentWidth(): number { return this.#reference.nativeElement.clientWidth; }
 
   hide() {
-    this.#width = this.reference.nativeElement.clientWidth;
+    this.#widthBeforeHiding = this.#reference.nativeElement.clientWidth;
     this.display = 'none';
     this.#hidden = true;
+    this.toggleVisibility(false);
   }
 
   show() {
     this.display = 'block';
     this.#hidden = false;
+    this.toggleVisibility(true);
+  }
+
+  toggleVisibility(visible: boolean): void {
+    if (visible) {
+      this.visibility = 'visible';
+    } else {
+      this.visibility = 'hidden';
+    }
   }
 
   protected onClick(): void {

@@ -7,17 +7,13 @@ import {
 } from '@angular/core';
 import { BreadcrumbElementComponent } from './breadcrumb-element/breadcrumb-element.component';
 import { Breadcrumb } from '../models';
-import { AsyncPipe } from '@angular/common';
 import { delay, Subject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-breadcrumbs',
   standalone: true,
-  imports: [
-    BreadcrumbElementComponent,
-    AsyncPipe
-  ],
+  imports: [BreadcrumbElementComponent],
   templateUrl: './breadcrumbs.component.html',
   styleUrl: './breadcrumbs.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,7 +37,7 @@ export class BreadcrumbsComponent implements OnChanges {
         if (prevValue.length === currValue.length) {
           return;
         }
-        this.checkBreadcrumbsAfterSizeChange(this.getContainerWidth());
+        this.resize(this.getContainerWidthVisibleElements());
         this.#cdr.markForCheck();
       });
   }
@@ -55,7 +51,7 @@ export class BreadcrumbsComponent implements OnChanges {
       if (!this.breadcrumbElements || this.breadcrumbElements?.length === 0) {
         return;
       }
-      this.checkBreadcrumbsAfterSizeChange(this.getContainerWidth());
+      this.resize(this.getContainerWidthVisibleElements());
     }
     if (changes['breadcrumbs']) {
       this.#breadcrumbsUpdated.next({
@@ -65,46 +61,49 @@ export class BreadcrumbsComponent implements OnChanges {
     }
   }
 
-  private checkBreadcrumbsAfterSizeChange(width: number): void {
+  private resize(width: number): void {
     if (width > this.maxWidth) {
       for (let i = 1; i < this.breadcrumbElements.length - 1; i++) {
         if (width <= this.maxWidth) {
-          return;
+          break;
         }
         const breadcrumb = this.breadcrumbElements.get(i) ?? null;
-        if (breadcrumb) {
-          width -= breadcrumb.reference.nativeElement.clientWidth;
+        if (breadcrumb && !breadcrumb.hidden) {
+          width -= breadcrumb.currentWidth;
           breadcrumb.hide();
           this.#hiddenElements = true;
         }
       }
-      return;
     } else {
       let hiddenElements = false;
       if (this.#hiddenElements) {
         for (let i = this.breadcrumbElements.length - 2; i > 0; i--) {
           if (width == this.maxWidth) {
             hiddenElements = true;
-            return;
+            break;
           }
           const breadcrumb = this.breadcrumbElements.get(i) ?? null;
           if (breadcrumb && breadcrumb.hidden) {
-            if (width + breadcrumb.width > this.maxWidth) {
+            if (width + breadcrumb.widthBeforeHiding > this.maxWidth) {
               hiddenElements = true;
-              return;
+              break;
             }
-            width += breadcrumb.width;
+            width += breadcrumb.widthBeforeHiding;
             breadcrumb.show();
           }
         }
       }
       this.#hiddenElements = hiddenElements;
     }
+    // toggle visibility based on the calculated hidden prop
+    this.breadcrumbElements.forEach(breadcrumb => {
+      breadcrumb.toggleVisibility(!breadcrumb.hidden)
+    });
   }
 
-  private getContainerWidth(): number {
+  private getContainerWidthVisibleElements(): number {
     const breadcrumbsWidth = this.breadcrumbElements?.reduce((width, breadcrumb) => {
-      return width + breadcrumb.reference.nativeElement.clientWidth;
+      return width + breadcrumb.currentWidth;
     }, 0) ?? 0;
     return breadcrumbsWidth + 75;
   }
