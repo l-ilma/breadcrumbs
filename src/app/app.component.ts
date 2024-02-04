@@ -17,23 +17,19 @@ export class AppComponent {
   readonly #breadcrumbs= signal<Breadcrumb[]>([
     {
       key: '0',
-      label$: of('Breadcrumb 0'),
-      url: '/0'
+      label$: of('Breadcrumb 0')
     },
     {
       key: '1',
-      label$: of('Breadcrumb 1'),
-      url: '/1'
+      label$: of('Breadcrumb 1')
     },
     {
       key: '2',
-      label$: of('Breadcrumb 2'),
-      url: '/2'
+      label$: of('Breadcrumb 2')
     },
     {
       key: '3',
-      label$: of('Breadcrumb 3'),
-      url: '/3'
+      label$: of('Breadcrumb 3')
     }
   ]);
   readonly #maxWidth = signal<number>(0);
@@ -51,8 +47,7 @@ export class AppComponent {
     const index = this.#breadcrumbs().length;
     this.#breadcrumbs.update(b => [...b, {
       key: index.toString(),
-      label$: of(`Breadcrumb ${index}`),
-      url: `/${index}`
+      label$: of(`Breadcrumb ${index}`)
     }]);
   }
 

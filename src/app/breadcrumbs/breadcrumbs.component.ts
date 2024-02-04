@@ -1,24 +1,26 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy, ChangeDetectorRef,
-  Component, ElementRef,
+  Component, DestroyRef, ElementRef,
   EventEmitter, inject,
   Input, OnChanges,
-  Output, QueryList, SimpleChanges, ViewChild, ViewChildren
+  Output, QueryList, signal, Signal, SimpleChanges, ViewChild, ViewChildren
 } from '@angular/core';
 import { BreadcrumbElementComponent } from './breadcrumb-element/breadcrumb-element.component';
 import { Breadcrumb } from '../models';
-import { delay, Subject } from 'rxjs';
+import { map, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-breadcrumbs',
   standalone: true,
-  imports: [BreadcrumbElementComponent],
+  imports: [BreadcrumbElementComponent, NgTemplateOutlet],
   templateUrl: './breadcrumbs.component.html',
   styleUrl: './breadcrumbs.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BreadcrumbsComponent implements OnChanges {
+export class BreadcrumbsComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) breadcrumbs!: Breadcrumb[];
   @Input({ required: true }) maxWidth!: number;
 
@@ -27,39 +29,46 @@ export class BreadcrumbsComponent implements OnChanges {
 
   @Output() breadcrumbClicked = new EventEmitter<Breadcrumb>();
 
-  #hiddenElements = false;
-  #breadcrumbsUpdated = new Subject<{ prevValue: Breadcrumb[], currValue: Breadcrumb[] }>();
-  #cdr = inject(ChangeDetectorRef);
+  protected overflowBreadcrumb: Breadcrumb = {
+    key: 'overflow',
+    label$: of('...')
+  };
 
-  constructor() {
-    this.#breadcrumbsUpdated.pipe(delay(0), takeUntilDestroyed())
-      .subscribe(({ prevValue, currValue }) => {
-        if (prevValue.length === currValue.length) {
-          return;
-        }
-        this.resize(this.getContainerWidthVisibleElements());
-        this.#cdr.markForCheck();
-      });
+  #overflow = signal(false);
+  #cdr = inject(ChangeDetectorRef);
+  #destroyRef = inject(DestroyRef);
+
+  protected get overflow(): Signal<boolean> {
+    return this.#overflow;
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['maxWidth']) {
+    if (changes['maxWidth'] || changes['breadcrumbs'].firstChange) {
       if (!this.breadcrumbElements || this.breadcrumbElements?.length === 0) {
         return;
       }
-      this.resize(this.getContainerWidthVisibleElements());
-    }
-    if (changes['breadcrumbs']) {
-      this.#breadcrumbsUpdated.next({
-        prevValue: changes['breadcrumbs'].previousValue,
-        currValue: changes['breadcrumbs'].currentValue
-      });
+      this.resize(this.getContainerWidthVisibleElements(), this.overflow() ? 2 : 1);
     }
   }
 
-  private resize(width: number): void {
+  ngAfterViewInit(): void {
+    this.breadcrumbElements?.changes?.pipe(
+      map(elements => elements.toArray()),
+      map((elements: BreadcrumbElementComponent[]) =>
+        elements.sort((a, b) =>
+          this.getBreadcrumbElementIndex(a) - this.getBreadcrumbElementIndex(b))),
+      tap((sortedElements) => this.breadcrumbElements.reset(sortedElements)),
+      takeUntilDestroyed(this.#destroyRef)
+    ).subscribe(val => {
+      console.log('list changes', this.overflow(), val);
+      this.resize(this.getContainerWidthVisibleElements(), this.overflow() ? 2 : 1);
+      this.#cdr.detectChanges();
+    })
+  }
+
+  private resize(width: number, index = 1): void {
     if (width > this.maxWidth) {
-      for (let i = 1; i < this.breadcrumbElements.length - 1; i++) {
+      for (let i = index; i < this.breadcrumbElements.length - 1; i++) {
         if (width <= this.maxWidth) {
           break;
         }
@@ -67,13 +76,13 @@ export class BreadcrumbsComponent implements OnChanges {
         if (breadcrumb && !breadcrumb.hidden) {
           width -= breadcrumb.currentWidth;
           breadcrumb.hide();
-          this.#hiddenElements = true;
+          this.#overflow.set(true);
         }
       }
     } else {
       let hiddenElements = false;
-      if (this.#hiddenElements) {
-        for (let i = this.breadcrumbElements.length - 2; i > 0; i--) {
+      if (this.overflow()) {
+        for (let i = this.breadcrumbElements.length - 2; i >= index; i--) {
           if (width == this.maxWidth) {
             hiddenElements = true;
             break;
@@ -89,7 +98,7 @@ export class BreadcrumbsComponent implements OnChanges {
           }
         }
       }
-      this.#hiddenElements = hiddenElements;
+      this.#overflow.set(hiddenElements);
     }
     // toggle visibility based on the calculated hidden prop
     this.breadcrumbElements.forEach(breadcrumb => {
@@ -102,5 +111,12 @@ export class BreadcrumbsComponent implements OnChanges {
       return width + breadcrumb.currentWidth;
     }, 0) ?? 0;
     return breadcrumbsWidth + 75;
+  }
+
+  private getBreadcrumbElementIndex(breadcrumbElement: BreadcrumbElementComponent): number {
+    if (breadcrumbElement.breadcrumb.key === 'overflow') {
+      return 1;
+    }
+    return this.breadcrumbs.findIndex(b => b.key === breadcrumbElement.breadcrumb.key);
   }
 }

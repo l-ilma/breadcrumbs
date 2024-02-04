@@ -4,13 +4,25 @@
     (click)="breadcrumbClicked.emit(breadcrumbs[breadcrumbs.length - 2])">
     <
   </button>
-  @for (breadcrumb of breadcrumbs; track breadcrumb.key) {
-    <app-breadcrumb-element
-      [breadcrumb]="breadcrumb"
-      [first]="$first"
-      [last]="$last"
-      (breadcrumbClicked)="breadcrumbClicked.emit(breadcrumbs[$index])"
-    />
+  @for (breadcrumb of breadcrumbs; track breadcrumb.key; let i = $index; let last = $last; let first = $first) {
+    @if (overflow()) {
+      @if (i === 1) {
+        <app-breadcrumb-element
+          [breadcrumb]="overflowBreadcrumb"
+          [first]="false"
+          [last]="false"
+        />
+      }
+      <ng-container *ngTemplateOutlet="visibleCrumb; context:{breadcrumb, first, last, i}" />
+    } @else {
+      <ng-container *ngTemplateOutlet="visibleCrumb; context:{breadcrumb, first, last, i}" />
+    }
   }
 </div>
-
+<ng-template #visibleCrumb let-breadcrumb="breadcrumb" let-first="first" let-last="last" let-i="i">
+  <app-breadcrumb-element
+    [breadcrumb]="breadcrumb"
+    [first]="first"
+    [last]="last"
+    (breadcrumbClicked)="breadcrumbClicked.emit(breadcrumbs[i])"/>
+</ng-template>
