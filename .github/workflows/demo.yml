@@ -11,6 +11,14 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install angular-cli
+        run: npm install -g @angular/cli
+      - name: Install dependencies
+        run: npm install
       - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Run build
         run: npm run build
