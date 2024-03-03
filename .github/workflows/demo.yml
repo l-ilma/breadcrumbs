@@ -2,23 +2,37 @@ name: Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Build-And-Test:
     runs-on: windows-latest
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - name: Check out repository code
         uses: actions/checkout@v4
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '20'
       - name: Install dependencies
         run: npm install
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
       - name: Run build
         run: npm run build
       - name: Run tests
         run: npm run test
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+  Publish-Package:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install
+      - name: Build publishable lib
+        run: npm run build:publishable
+      - name: Publish to github packages
+        run: |
+          cd dist/publishable
+          npm publish
       - run: echo "🍏 This job's status is ${{ job.status }}."

@@ -78,6 +78,29 @@
           }
         }
       }
+    },
+    "publishable": {
+      "projectType": "library",
+      "root": "projects/publishable",
+      "sourceRoot": "projects/publishable/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/publishable/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/publishable/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/publishable/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
     }
   }
 }
