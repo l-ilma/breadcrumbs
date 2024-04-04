@@ -1,0 +1,20 @@
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  linux-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+
+  windows-cache:
+    runs-on: windows-latest
+    needs: linux-cache
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
