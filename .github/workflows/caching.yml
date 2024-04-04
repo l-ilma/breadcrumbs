@@ -8,6 +8,11 @@ jobs:
   linux-cache:
     runs-on: ubuntu-latest
     steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: checkout
         uses: actions/checkout@v4
 
@@ -18,7 +23,7 @@ jobs:
           cache-name: cache-npm
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
@@ -38,6 +43,11 @@ jobs:
     runs-on: windows-latest
     needs: linux-cache
     steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: checkout
         uses: actions/checkout@v4
 
@@ -48,7 +58,7 @@ jobs:
           cache-name: cache-npm
         with:
           path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
