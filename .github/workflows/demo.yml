@@ -29,24 +29,25 @@ jobs:
 
       - name: Parse log file
         run: |
-          set +e
           errorFound=$(grep -c "ERROR" report.log)
           unchangedFound=$(grep -c "UNCHANGED" report.log)
           successFound=$(grep -c "SUCCESS" report.log)
 
-          echo "$errorFound"
-          echo "$unchangedFound"
-          echo "$successFound"
+          echo "### Parsing log file summary! :rocket:" >> $GITHUB_STEP_SUMMARY
 
           if [[ $errorFound > 0 ]]
           then
             echo "::error::Problems found when trying to publish packages"
+            echo ":x: Error(s) occurred when publishing packages" >> $GITHUB_STEP_SUMMARY
           elif [[ $unchangedFound > 0 && $errorFound == 0 && $successFound == 0 ]]
           then
             echo "::warning::Nothing changed, you probably need to update your packages' versions"
+            echo ":warning: Please update your packages' versions" >> $GITHUB_STEP_SUMMARY
           elif [[ $successFound > 0 && $errorFound == 0 && $unchangedFound == 0 ]]
           then
             echo "::notice::Publishing was successful"
+            echo ":white_check_mark: Packages published successfully" >> $GITHUB_STEP_SUMMARY
           else
             echo "::warning::You probably need to update some of your packages' versions"
+            echo ":warning: Please update your packages' versions" >> $GITHUB_STEP_SUMMARY
           fi
