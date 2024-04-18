@@ -1,8 +1,7 @@
-name: Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions
+name: Parse log file
 on: push
 jobs:
-  parse-log-file:
+  parse:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -30,6 +29,7 @@ jobs:
 
       - name: Parse log file
         run: |
+          set +e
           errorFound=grep -Fxq "ERROR" report.log
           unchangedFound=grep -Fxq "UNCHANGED" report.log
           successFound=grep -Fxq "SUCCESS" report.log
