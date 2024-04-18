@@ -41,21 +41,12 @@ jobs:
           if [ $errorFound -gt 0 ]
           then
             echo "::error::Problems found when trying to publish packages"
-#            exit 1
           elif [ $unchangedFound -gt 0 && $errorFound -eq 0 && $successFound -eq 0]
           then
             echo "::warning::Nothing changed, you probably need to update your packages' versions"
-#            exit 0
           elif [ $successFound -gt 0 && $errorFound -eq 0 && $unchangedFound -eq 0 ]
           then
             echo "::notice::Publishing was successful"
-#            exit 0
           else
             echo "::warning::You probably need to update some of your packages' versions"
-#            exit 0
           fi
-
-
-
-
-
