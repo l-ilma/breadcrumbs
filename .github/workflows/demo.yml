@@ -30,9 +30,9 @@ jobs:
       - name: Parse log file
         run: |
           set +e
-          errorFound=grep "ERROR" report.log
-          unchangedFound=grep "UNCHANGED" report.log
-          successFound=grep "SUCCESS" report.log
+          errorFound=$(grep -Fxq "ERROR" report.log)
+          unchangedFound=$(grep -Fxq "UNCHANGED" report.log)
+          successFound=$(grep -Fxq "SUCCESS" report.log)
 
           if [ $errorFound ]
           then
