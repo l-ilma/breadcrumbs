@@ -30,34 +30,34 @@ jobs:
       - name: Parse log file
         run: |
           set +e
-          errorFound=$(grep -Fxq "ERROR" report.log)
-          unchangedFound=$(grep -Fxq "UNCHANGED" report.log)
-          successFound=$(grep -Fxq "SUCCESS" report.log)
+          errorFound=$(grep -c "ERROR" report.log)
+          unchangedFound=$(grep -c "UNCHANGED" report.log)
+          successFound=$(grep -c "SUCCESS" report.log)
 
           echo "$errorFound"
           echo "$unchangedFound"
           echo "$successFound"
 
-#          if [ $errorFound ]
-#          then
-#            echo "Error found in log file"
-#            echo "::error::Problems found when trying to publish packages"
-#            exit 1
-#          elif [ $unchangedFound && !$errorFound && !$successFound ]
-#          then
-#            echo "No changes found in log file"
-#            echo "::warning::Nothing changed, you probably need to update your packages' versions"
-#            exit 0
-#          elif [ $successFound && !$errorFound && !$unchangedFound ]
-#          then
-#            echo "Success found in log file"
-#            echo "::notice::Publishing was successful"
-#            exit 0
-#          else
-#            echo "Some of your packages' versions probably need to be updated"
-#            echo "::warning::You probably need to update some of your packages' versions"
-#            exit 0
-#          fi
+          if [ $errorFound ]
+          then
+            echo "Error found in log file"
+            echo "::error::Problems found when trying to publish packages"
+            exit 1
+          elif [ $unchangedFound && !$errorFound && !$successFound ]
+          then
+            echo "No changes found in log file"
+            echo "::warning::Nothing changed, you probably need to update your packages' versions"
+            exit 0
+          elif [ $successFound && !$errorFound && !$unchangedFound ]
+          then
+            echo "Success found in log file"
+            echo "::notice::Publishing was successful"
+            exit 0
+          else
+            echo "Some of your packages' versions probably need to be updated"
+            echo "::warning::You probably need to update some of your packages' versions"
+            exit 0
+          fi
 
 
 
