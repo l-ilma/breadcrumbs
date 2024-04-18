@@ -1,38 +1,61 @@
 name: Demo
 run-name: ${{ github.actor }} is testing out GitHub Actions
-on: [workflow_dispatch]
+on: push
 jobs:
-  Build-And-Test:
-    runs-on: windows-latest
+  parse-log-file:
+    runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '20'
-      - name: Install dependencies
-        run: npm install
-      - name: Run build
-        run: npm run build
-      - name: Run tests
-        run: npm run test
-      - run: echo "🍏 This job's status is ${{ job.status }}."
-  Publish-Package:
-    runs-on: windows-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-npm
         with:
-          node-version: '20'
+          path: ~/.npm
+          key: build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            build-${{ env.cache-name }}-
+
       - name: Install dependencies
         run: npm install
-      - name: Build publishable lib
-        run: npm run build:publishable
-      - name: Publish to github packages
+        if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+
+      - name: Parse log file
         run: |
-          cd dist/publishable
-          npm publish
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          errorFound=grep -Fxq "ERROR" report.log
+          unchangedFound=grep -Fxq "UNCHANGED" report.log
+          successFound=grep -Fxq "SUCCESS" report.log
+
+          if [ $errorFound ]
+          then
+            echo "Error found in log file"
+            echo "::error::Problems found when trying to publish packages"
+            exit 1
+          elif [ $unchangedFound && !$errorFound && !$successFound ]
+          then
+            echo "No changes found in log file"
+            echo "::warning::Nothing changed, you probably need to update your packages' versions"
+            exit 0
+          elif [ $successFound && !$errorFound && !$unchangedFound ]
+          then
+            echo "Success found in log file"
+            echo "::notice::Publishing was successful"
+            exit 0
+          else
+            echo "Some of your packages' versions probably need to be updated"
+            echo "::warning::You probably need to update some of your packages' versions"
+            exit 0
+          fi
+
+
+
+
+
